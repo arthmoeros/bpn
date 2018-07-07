@@ -1,0 +1,28 @@
+{
+  "name": "bpn",
+  "version": "0.0.0",
+  "description": "Business Process Engine for Node",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arthmoeros/bpn.git"
+  },
+  "keywords": [
+    "bpel",
+    "business",
+    "process",
+    "engine",
+    "node",
+    "yaml",
+    "json"
+  ],
+  "author": "arthmoeros",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/arthmoeros/bpn/issues"
+  },
+  "homepage": "https://github.com/arthmoeros/bpn#readme"
+}
