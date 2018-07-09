@@ -24,5 +24,8 @@
   "bugs": {
     "url": "https://github.com/arthmoeros/bpn/issues"
   },
-  "homepage": "https://github.com/arthmoeros/bpn#readme"
+  "homepage": "https://github.com/arthmoeros/bpn#readme",
+  "dependencies": {
+    "js-yaml": "^3.12.0"
+  }
 }

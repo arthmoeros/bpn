@@ -1,0 +1,88 @@
+# first, we create the customer, then add their phone numbers and finally create his profile, all of this must be rollbackable
+main:
+  _initialize:
+    tasks:
+      - mapData: { params: [], target: $output, mapFile: ./initOutput.js }
+  _createCustomer:
+    tasks:
+      - mapData: { params: [$input], target: $inputCustomer, mapFile: ./mapToInputCustomer.js }
+      - apiCall:
+          method: POST
+          resource: http://localhost:8100/api/v1/customer
+          headers: []
+          body: $inputCustomer
+          response: $responseCustomer
+      - if:
+          expr: $responseCustomer.httpCode != 201
+          then:
+            - raiseError: "Customer creation failed"
+      - mapData: { params: [$output, $responseCustomer], target: $output, mapFile: ./addCustomerResponseToOutput.js }
+    compensationHandler: _compensateCreateCustomer
+  _addPhoneNumbers:
+    tasks:
+      forEach:
+        item: $phone
+        list: $input.phones
+        tasks:
+          - mapData: { params: [$phone], target: $inputPhone, mapFile: ./mapToInputPhone.js }
+          - apiCall:
+              method: POST
+              resource: http://localhost:8100/api/v1/customer/{$outputCustomer.id}/phone
+              headers: []
+              body: $inputPhone
+              response: $responsePhone
+          - if:
+              expr: $responsePhone.httpStatus != 201
+              then:
+                - raiseError: "Phone creation for customer failed"
+        compensationHandler: _compensateEachPhoneNumber
+  _createProfile:
+    tasks:
+      - mapData: { params: [$input], target: $inputProfile, mapFile: ./mapToInputProfile.js }
+      - apiCall:
+          method: POST
+          resource: http://localhost:8100/api/v1/customer/{$outputCustomer.id}/profile
+          headers: []
+          body: $inputProfile
+          response: $responseProfile
+      - if:
+          expr: $responseProfile.httpStatus != 201
+          then:
+            - raiseError: "Phone creation for customer failed"
+      - mapData: { params: [$output, $responseProfile], target: $output, mapFile: ./addProfileResponseOutput.js }
+    compensationHandler: _compensateProfile
+
+compensationHandlers:
+  _compensateCreateCustomer:
+    tasks:
+      - mapData: { params: [$input], target: $inputCustomer, mapFile: ./mapToInputCustomer.js }
+      - apiCall:
+          method: DELETE
+          resource: http://localhost:8100/api/v1/customer
+          headers: []
+          body: $inputCustomer
+          response: $responseCustomer
+
+  _compensateEachPhoneNumber:
+    tasks:
+      - mapData: { params: [$phone], target: $inputPhone, mapFile: ./mapToInputPhone.js }
+      - apiCall:
+          method: DELETE
+          resource: http://localhost:8100/api/v1/customer/{$outputCustomer.id}/phone
+          headers: []
+          body: $inputPhone
+          response: $responsePhone
+
+  _compensateProfile:
+    tasks:
+      - mapData: { params: [$input], target: $inputProfile, mapFile: ./mapToInputProfile.js }
+      - apiCall:
+          method: DELETE
+          resource: http://localhost:8100/api/v1/customer/{$outputCustomer.id}/profile
+          headers: []
+          body: $inputProfile
+          response: $responseProfile
+  
+onError:
+  default:
+    tasks:
